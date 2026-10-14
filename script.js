@@ -4,7 +4,7 @@ const ctx = canvas.getContext("2d"); //creo un elemento canvas
 
 //IMPORTANTE METTERLE ALL'INIZIO
 canvas.width = 1000;
-canvas.height = 700;
+canvas.height = 600;
 
 //creo l'oggetto perchè mi serve per il movimento di essa
 const navicella = {
@@ -20,7 +20,7 @@ const navicella = {
 
 
 const righe = 8;
-const colonne = 15  ;
+const colonne = 15;
 
 const larghezza = 60;
 const altezza = 20;
@@ -54,21 +54,63 @@ function disegnaNavicella() {
     ctx.fill();
 }
 
-function disegnaMattoncini() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // mi pulisce tutto il canvas
-
-    for (let r = 0; r < righe; r++) {   
+const listaMattoncini = [];
+function creaMattoncini() {
+    for (let r = 0; r < righe; r++) {
         for (let c = 0; c < colonne; c++) {
-            const x = margineX + c * (larghezza + spazio); 
-            const y = margineY + r * (altezza + spazio);
-
-            ctx.fillStyle = colori[r];
-            ctx.fillRect(x, y, larghezza, altezza); //riempie il triangolo
+            listaMattoncini.push({
+                x: margineX + c * (larghezza + spazio),
+                y: margineY + r * (altezza + spazio),
+                larghezza: larghezza,
+                altezza: altezza,
+                colore: colori[r],
+                visibile: true
+            });
         }
     }
-    disegnaNavicella();
 }
 
 
+function disegnaMattoncini() {
+    for (const m of listaMattoncini) {
+        if (m.visibile) {
+            ctx.fillStyle = m.colore;
+            ctx.fillRect(m.x, m.y, m.larghezza, m.altezza);
+        }
+    }
+}
 
-disegnaMattoncini();
+function disegna() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // mi pulisce tutto il canvas
+    disegnaMattoncini();
+    disegnaNavicella();
+}
+
+//INIZIO GIOCO:
+//senò crea all'infinito i mattoncini
+creaMattoncini();
+disegna();
+
+canvas.addEventListener("mousemove", function (e) {
+    // con questa funzione capiamo dove si trova il canvas e da quello prendiamo la distanza da togliere alla scala;
+
+    const rect = canvas.getBoundingClientRect();
+
+    const scalaX = canvas.width / rect.width;
+    const mouseX = (e.clientX - rect.left) * scalaX;
+
+    // centro la navicella sul mouse
+    navicella.x = mouseX - navicella.larghezza / 2;
+
+    // la blocco dentro i bordi in 10 px del canvas dal blocco almeno è più ordinato e chiaro 
+    if (navicella.x < 10) {
+        navicella.x = 10;
+    }
+    if (navicella.x + navicella.larghezza > canvas.width - 10) {
+        navicella.x = canvas.width - navicella.larghezza - 10;
+    }
+
+    disegna();
+    
+
+});
