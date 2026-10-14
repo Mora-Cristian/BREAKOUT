@@ -17,7 +17,8 @@ const navicella = {
     colore: "white"
 };
 
-
+//velocità della palla
+const VELOCITA = 5;
 
 const righe = 8;
 const colonne = 15;
@@ -40,6 +41,17 @@ const colori = [
     "purple"        // T
 ];
 
+//palla
+ const palla = {
+    x: navicella.x + navicella.larghezza / 2,
+    y: navicella.y - 8,
+    raggio: 8,
+    dx: VELOCITA,            // velocità orizzontale
+    dy: -VELOCITA   ,           // velocità verticale (negativo = verso l'alto)
+    colore: "white",
+    inMovimento: false
+ };
+
 function disegnaNavicella() {
     ctx.fillStyle = navicella.colore;
 
@@ -52,7 +64,8 @@ function disegnaNavicella() {
         5
     );
     ctx.fill();
-}
+};
+
 
 const listaMattoncini = [];
 function creaMattoncini() {
@@ -80,22 +93,136 @@ function disegnaMattoncini() {
     }
 }
 
+function disegnaPalla() {
+    ctx.fillStyle = palla.colore;
+    ctx.beginPath();
+    ctx.arc(palla.x, palla.y, palla.raggio, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+
 function disegna() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // mi pulisce tutto il canvas
     disegnaMattoncini();
     disegnaNavicella();
+    disegnaPalla();
+}
+
+//movimento palla:
+function aggiornaPalla() {
+    // se non è partita, segue la navicella
+    if (!palla.inMovimento) {
+        palla.x = navicella.x + navicella.larghezza / 2;
+        palla.y = navicella.y - palla.raggio;
+        return;
+    }
+
+    palla.x += palla.dx;
+    palla.y += palla.dy;
+
+    // rimbalzo sui muri sinistro e destro
+    if (palla.x - palla.raggio < 0) {
+        palla.x = palla.raggio;
+        palla.dx = Math.abs(palla.dx);
+    }
+    if (palla.x + palla.raggio > canvas.width) {
+        palla.x = canvas.width - palla.raggio;
+        palla.dx = -Math.abs(palla.dx);
+    }
+
+    // rimbalzo sul soffitto
+    if (palla.y - palla.raggio < 0) {
+        palla.y = palla.raggio;
+        palla.dy = Math.abs(palla.dy);
+    }
+
+    // rimbalzo sulla navicella
+    if (
+        palla.dy > 0 &&
+        palla.y + palla.raggio >= navicella.y &&
+        palla.y + palla.raggio <= navicella.y + navicella.altezza &&
+        palla.x >= navicella.x &&
+        palla.x <= navicella.x + navicella.larghezza
+    ) {
+        // punto d'impatto: -1 = bordo sinistro, 0 = centro, 1 = bordo destro
+        const centro = navicella.x + navicella.larghezza / 2;
+        const impatto = (palla.x - centro) / (navicella.larghezza / 2);
+
+        const angolo = impatto * (Math.PI / 3); // massimo 60° di inclinazione
+        palla.dx = VELOCITA * Math.sin(angolo);
+        palla.dy = -VELOCITA * Math.cos(angolo);
+    }
+
+    // se cade sotto il canvas, torna sulla navicella
+    if (palla.y - palla.raggio > canvas.height) {
+        palla.inMovimento = false;
+        palla.dx = VELOCITA * Math.SQRT1_2;
+        palla.dy = -VELOCITA * Math.SQRT1_2;
+    }
+}
+
+
+//collisioni:
+function collisioni() {
+    for (const m of listaMattoncini) {
+        if (!m.visibile) continue; // salto i blocchi già distrutti
+        
+        if (
+            palla.x + palla.raggio > m.x && //la palla non è tutta a destra
+            palla.x - palla.raggio < m.x + m.larghezza && //la palla non è tutta a sinistra
+            palla.y + palla.raggio > m.y && //la palla non è tutta sopra
+            palla.y - palla.raggio < m.y + m.altezza //la palla non è tutta sotto
+        ) { 
+            m.visibile = false;
+
+            // capisco da che lato ho colpito: calcolo quanto la palla è "entrata" in ogni lato
+            const dalSinistra = palla.x + palla.raggio - m.x;
+            const dalDestra = m.x + m.larghezza - (palla.x - palla.raggio);
+            const dalSopra = palla.y + palla.raggio - m.y;
+            const dalSotto = m.y + m.altezza - (palla.y - palla.raggio);
+
+            const minimo = Math.min(dalSinistra, dalDestra, dalSopra, dalSotto);
+
+            if (minimo === dalSinistra || minimo === dalDestra) {
+                palla.dx = -palla.dx; // colpito di lato
+            } else {
+                palla.dy = -palla.dy; // colpito sopra o sotto
+            }
+
+            break; // un solo mattoncino per frame
+        }
+    }
+}
+
+//PER STARTARE LA PARTITA:
+canvas.addEventListener("click", function () {
+    palla.inMovimento = true;
+});
+
+document.addEventListener("keydown", function (e) {
+    if (e.code === "Space") {
+        palla.inMovimento = true;
+    }
+});
+
+//GIOCO IN MOVIMENTO:
+function gioco() {
+    aggiornaPalla();
+    disegna();
+    collisioni();
+    requestAnimationFrame(gioco);
 }
 
 //INIZIO GIOCO:
-//senò crea all'infinito i mattoncini
+//creo i mattoncini all'inizio per evitare di crearne all'infinito
 creaMattoncini();
-disegna();
+gioco();
 
 canvas.addEventListener("mousemove", function (e) {
     // con questa funzione capiamo dove si trova il canvas e da quello prendiamo la distanza da togliere alla scala;
-
     const rect = canvas.getBoundingClientRect();
-
+    
+    //faccio la conversione in base allo spostamento
     const scalaX = canvas.width / rect.width;
     const mouseX = (e.clientX - rect.left) * scalaX;
 
@@ -109,8 +236,6 @@ canvas.addEventListener("mousemove", function (e) {
     if (navicella.x + navicella.larghezza > canvas.width - 10) {
         navicella.x = canvas.width - navicella.larghezza - 10;
     }
-
-    disegna();
     
 
 });
