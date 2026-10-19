@@ -1,5 +1,6 @@
 const canvas = document.getElementById("quadrato");
 const ctx = canvas.getContext("2d"); //creo un elemento canvas
+const points = document.getElementById("points");
 
 
 //IMPORTANTE METTERLE ALL'INIZIO
@@ -19,6 +20,9 @@ const navicella = {
 
 //velocità della palla
 const VELOCITA = 5;
+let punteggio = 0;
+let blocchiDistrutti = 0;
+let velo = VELOCITA;
 
 const righe = 8;
 const colonne = 15;
@@ -149,8 +153,8 @@ function aggiornaPalla() {
         const impatto = (palla.x - centro) / (navicella.larghezza / 2);
 
         const angolo = impatto * (Math.PI / 3); // massimo 60° di inclinazione
-        palla.dx = VELOCITA * Math.sin(angolo);
-        palla.dy = -VELOCITA * Math.cos(angolo);
+        palla.dx = velo * Math.sin(angolo);
+        palla.dy = -velo * Math.cos(angolo);
     }
 
     // se cade sotto il canvas, torna sulla navicella
@@ -166,7 +170,7 @@ function aggiornaPalla() {
 function collisioni() {
     for (const m of listaMattoncini) {
         if (!m.visibile) continue; // salto i blocchi già distrutti
-        
+         
         if (
             palla.x + palla.raggio > m.x && //la palla non è tutta a destra
             palla.x - palla.raggio < m.x + m.larghezza && //la palla non è tutta a sinistra
@@ -174,6 +178,18 @@ function collisioni() {
             palla.y - palla.raggio < m.y + m.altezza //la palla non è tutta sotto
         ) { 
             m.visibile = false;
+
+            punteggio += 50;
+            points.textContent = "Points: " + punteggio;
+            blocchiDistrutti++;
+
+            if (blocchiDistrutti % 15 === 0) {
+                velo++;
+
+                const modulo = Math.sqrt(palla.dx * palla.dx + palla.dy * palla.dy);
+                palla.dx = (palla.dx / modulo) * velo;
+                palla.dy = (palla.dy / modulo) * velo;
+            }
 
             // capisco da che lato ho colpito: calcolo quanto la palla è "entrata" in ogni lato
             const dalSinistra = palla.x + palla.raggio - m.x;
