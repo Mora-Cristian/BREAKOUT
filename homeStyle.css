@@ -1,0 +1,115 @@
+body{
+    background-image: url(img/Designer.png);
+    margin: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+h1{
+    text-align: center;
+    font-size: 12vh;
+    font-family: 'Press Start 2P', monospace;
+    color: beige;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+h2{
+    color: darkgray;
+    text-align: center;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7vh;
+}
+
+a{
+    text-decoration: none;
+    color: darkgray;
+}
+/* Casella nickname */
+input {
+    display: block;
+    width: 20%;
+    padding: 20px 10px;
+    margin: 0px auto 15px;
+
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid #333;
+
+    color: #b1b1b1;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 40px;
+    text-align: center;
+
+    outline: none;
+    border-radius: 0;
+    transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+/* Scritta NICKNAME */
+input::placeholder {
+    color: #777;
+    font-size: 20px;
+    opacity: 1;
+}
+
+/* Effetto quando selezioni la casella */
+input:focus {
+    border-bottom-color: #8ba886;
+    box-shadow: 0 5px 8px -7px #bfccbc;
+}
+
+#errorMessage {
+    display: none;
+    color: #ff3333;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    text-align: center;
+    line-height: 2;
+    margin: -10px auto 20px;
+}
+
+
+
+@keyframes blinkError {
+    to {
+        visibility: hidden;
+    }
+}
+
+/* Bottone PLAY */
+.play-button {
+    display: block;
+    width: 10%;
+    margin: 20px auto;
+    padding: 20px 10px;
+
+    background: #777;
+    border: 2px solid #777;
+    border-radius: 4px;
+
+    color: #050505;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Effetto hover */
+.play-button:hover {
+    background: transparent;
+    color: #777;
+    box-shadow: 0 0 20px #777;;
+    transform: scale(1.05);
+}
+
+/* Effetto quando premi */
+.play-button:active {
+    transform: scale(0.97);
+    box-shadow: 0 0 8px #777;;
+}

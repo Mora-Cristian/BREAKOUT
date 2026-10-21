@@ -28,3 +28,8 @@ h2{
     font-size: 4vh;
     text-align: center;
 }
+.head{
+    display: flex;
+    justify-content: center;
+    gap:30px;
+}

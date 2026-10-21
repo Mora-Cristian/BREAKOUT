@@ -1,7 +1,10 @@
 const canvas = document.getElementById("quadrato");
 const ctx = canvas.getContext("2d"); //creo un elemento canvas
 const points = document.getElementById("points");
+const time = document.getElementById("time");
 
+//nome nickname per json da salvare 
+const utente = localStorage.getItem("nickname");
 
 //IMPORTANTE METTERLE ALL'INIZIO
 canvas.width = 1000;
@@ -23,6 +26,8 @@ const VELOCITA = 5;
 let punteggio = 0;
 let blocchiDistrutti = 0;
 let velo = VELOCITA;
+let tempo = 0;
+let timer = null;
 
 const righe = 8;
 const colonne = 15;
@@ -46,15 +51,31 @@ const colori = [
 ];
 
 //palla
- const palla = {
+const palla = {
     x: navicella.x + navicella.larghezza / 2,
     y: navicella.y - 8,
     raggio: 8,
     dx: VELOCITA,            // velocità orizzontale
-    dy: -VELOCITA   ,           // velocità verticale (negativo = verso l'alto)
+    dy: -VELOCITA,           // velocità verticale (negativo = verso l'alto)
     colore: "white",
     inMovimento: false
- };
+};
+
+
+function avviaTimer() {
+    if (timer !== null) return; // evita di avviare più timer
+
+    timer = setInterval(() => {
+        tempo++;
+
+        const minuti = Math.floor(tempo / 60);
+        const secondi = tempo % 60;
+
+        time.textContent = "Time: " +
+            String(minuti).padStart(2, "0") + ":" +
+            String(secondi).padStart(2, "0");
+    }, 1000);
+}
 
 function disegnaNavicella() {
     ctx.fillStyle = navicella.colore;
@@ -121,6 +142,9 @@ function aggiornaPalla() {
         return;
     }
 
+
+
+
     palla.x += palla.dx;
     palla.y += palla.dy;
 
@@ -170,21 +194,26 @@ function aggiornaPalla() {
 function collisioni() {
     for (const m of listaMattoncini) {
         if (!m.visibile) continue; // salto i blocchi già distrutti
-         
+
         if (
             palla.x + palla.raggio > m.x && //la palla non è tutta a destra
             palla.x - palla.raggio < m.x + m.larghezza && //la palla non è tutta a sinistra
             palla.y + palla.raggio > m.y && //la palla non è tutta sopra
             palla.y - palla.raggio < m.y + m.altezza //la palla non è tutta sotto
-        ) { 
+        ) {
             m.visibile = false;
 
             punteggio += 50;
-            points.textContent = "Points: " + punteggio;
-            blocchiDistrutti++;
+            if (punteggio < 100)
+                points.textContent = "Points: 00" + punteggio + " ";
+            else if (punteggio < 1000)
+                points.textContent = "Points: 0" + punteggio + " ";
+            else
+                points.textContent = "Points: " + punteggio + " ";
 
+            blocchiDistrutti++;
             if (blocchiDistrutti % 15 === 0) {
-                velo++;
+                velo += 1.5;
 
                 const modulo = Math.sqrt(palla.dx * palla.dx + palla.dy * palla.dy);
                 palla.dx = (palla.dx / modulo) * velo;
@@ -212,13 +241,18 @@ function collisioni() {
 
 //PER STARTARE LA PARTITA:
 canvas.addEventListener("click", function () {
-    palla.inMovimento = true;
+    if (!palla.inMovimento) {
+        palla.inMovimento = true;
+        avviaTimer();
+    }
 });
 
 document.addEventListener("keydown", function (e) {
-    if (e.code === "Space") {
+    if (e.code === "Space" && !palla.inMovimento) {
         palla.inMovimento = true;
+        avviaTimer();
     }
+    
 });
 
 //GIOCO IN MOVIMENTO:
@@ -237,7 +271,7 @@ gioco();
 canvas.addEventListener("mousemove", function (e) {
     // con questa funzione capiamo dove si trova il canvas e da quello prendiamo la distanza da togliere alla scala;
     const rect = canvas.getBoundingClientRect();
-    
+
     //faccio la conversione in base allo spostamento
     const scalaX = canvas.width / rect.width;
     const mouseX = (e.clientX - rect.left) * scalaX;
@@ -252,6 +286,6 @@ canvas.addEventListener("mousemove", function (e) {
     if (navicella.x + navicella.larghezza > canvas.width - 10) {
         navicella.x = canvas.width - navicella.larghezza - 10;
     }
-    
+
 
 });

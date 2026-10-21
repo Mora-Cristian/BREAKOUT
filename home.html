@@ -1,17 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>home</title>
-    <link rel="stylesheet" href="style1.css">
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
-        rel="stylesheet">
+    <link rel="stylesheet" href="homeStyle.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <h1>START</h1>
     <h1>GAME</h1>
-    <h2><a href="index.html">PLAY</a></h2>
-    
+    <form id="gameForm" action="index.html" method="get">
+        <input type="text" id="nickname" name="nickname" placeholder="enter nickname..." maxlength="15"
+            autocomplete="off">
+
+        <p id="errorMessage">INSERISCI UN NICKNAME!</p>
+
+        <button type="submit" class="play-button">
+             START 
+        </button>
+        <script src="homeScript.js"></script>i
+    </form>
+
 </body>
+
 </html>
