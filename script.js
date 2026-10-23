@@ -28,6 +28,7 @@ let blocchiDistrutti = 0;
 let velo = VELOCITA;
 let tempo = 0;
 let timer = null;
+let partitaFinita = false;
 
 const righe = 8;
 const colonne = 15;
@@ -134,8 +135,10 @@ function disegna() {
 }
 
 //movimento palla:
-function aggiornaPalla() {
     // se non è partita, segue la navicella
+function aggiornaPalla() {
+    if (partitaFinita) return;
+
     if (!palla.inMovimento) {
         palla.x = navicella.x + navicella.larghezza / 2;
         palla.y = navicella.y - palla.raggio;
@@ -181,12 +184,13 @@ function aggiornaPalla() {
         palla.dy = -velo * Math.cos(angolo);
     }
 
-    // se cade sotto il canvas, torna sulla navicella
-    if (palla.y - palla.raggio > canvas.height) {
-        palla.inMovimento = false;
-        palla.dx = VELOCITA * Math.SQRT1_2;
-        palla.dy = -VELOCITA * Math.SQRT1_2;
-    }
+    // se cade sotto il canvas, arriva alert
+  if (palla.y - palla.raggio > canvas.height) {
+    clearInterval(timer);
+    alert("Hai perso! Premi OK per rigiocare.");
+    partitaFinita = true;
+    location.reload();
+}
 }
 
 
@@ -202,6 +206,8 @@ function collisioni() {
             palla.y - palla.raggio < m.y + m.altezza //la palla non è tutta sotto
         ) {
             m.visibile = false;
+            
+
 
             punteggio += 50;
             if (punteggio < 100)
@@ -212,6 +218,15 @@ function collisioni() {
                 points.textContent = "Points: " + punteggio + " ";
 
             blocchiDistrutti++;
+
+            if (blocchiDistrutti === righe * colonne && !partitaFinita) {
+                partitaFinita = true;
+                palla.inMovimento = false;
+                clearInterval(timer);
+                alert("Hai vinto! Premi OK per rigiocare.");
+                location.reload();
+                return;
+            }
             if (blocchiDistrutti % 15 === 0) {
                 velo += 1.5;
 
@@ -251,16 +266,34 @@ document.addEventListener("keydown", function (e) {
     if (e.code === "Space" && !palla.inMovimento) {
         palla.inMovimento = true;
         avviaTimer();
+    }if (e.key === "Escape") {
+        window.location.href = "home.html";
     }
-    
+    if (e.key === "ArrowLeft") {
+        navicella.x -= navicella.velocita+2;
+    }
+    if (e.key === "ArrowRight") {
+        navicella.x += navicella.velocita+2;
+    }
+    if (navicella.x < 0) {
+    navicella.x = 0;
+    }
+    if (navicella.x + navicella.larghezza > canvas.width) {
+        navicella.x = canvas.width - navicella.larghezza;
+    }
 });
 
 //GIOCO IN MOVIMENTO:
 function gioco() {
+    if (partitaFinita) return;
+
     aggiornaPalla();
     disegna();
     collisioni();
-    requestAnimationFrame(gioco);
+
+    if (!partitaFinita) {
+        requestAnimationFrame(gioco);
+    }
 }
 
 //INIZIO GIOCO:
